@@ -1,41 +1,73 @@
-This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
+# NORTH & FORM Mobile Application
 
-## Expo has changed — do not trust your training data
+Expo/React Native mobile app consuming the NORTH & FORM web/API backend. Independent Expo project inside the parent `north-form` repository.
 
-Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
+## Documentation Map
 
-1. Read the major version of the `expo` package in `package.json`.
-2. Fetch the matching versioned docs: `https://docs.expo.dev/versions/v<major>.0.0/`
-3. For anything else, fetch https://docs.expo.dev/llms.txt — an index of all Expo docs with corrections to common LLM misconceptions. Follow its links to the specific page you need; never answer from memory.
+| Document | Covers | Read it when |
+|---|---|---|
+| `docs/README.md` | Documentation index and routing | Starting any task; need to find relevant docs |
+| `PROJECT_STATUS.md` | Current implementation state and handoff | Starting any task or switching agents |
+| `docs/phase-3-1.md` | Phase 3.1: Expo foundation, authentication, native API access | Working on Phase 3.1 auth/API foundation |
 
-## Commands
+## Current High-Level Status
 
-Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
+- Expo 57 scaffold complete
+- Expo Router configured with `src/app` as route root
+- Expo Go successfully tested on physical Android device
+- Authentication/mobile API implementation **not started**
 
-```bash
-npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
-npx expo start              # start the dev server
-npx expo lint               # lint
-npx tsc --noEmit            # typecheck
-npx expo-doctor             # diagnose dependency and config issues
-npx expo install --fix      # fix incompatible package versions
+## Stack / Version Traps
+
+- **Expo 57** (`expo@~57.0.26`, `react-native@0.86.3`, `react@19.2.3`)
+- Before using Expo/EAS/React Native APIs, consult the matching Expo 57 docs: `https://docs.expo.dev/versions/v57.0.0/`
+- For anything else, fetch `https://docs.expo.dev/llms.txt` — index of all Expo docs with corrections to common LLM misconceptions
+- Never answer from memory; Expo ships breaking changes every SDK release
+
+## Source Structure
+
+```
+src/
+├── app/              # Expo Router routes (file-based routing)
+│   ├── _layout.tsx   # Root tab navigator
+│   ├── index.tsx     # Home screen
+│   └── explore.tsx   # Example second tab
+├── components/       # Reusable UI components
+│   ├── ui/           # Primitives (Collapsible, etc.)
+│   ├── *.tsx         # Feature components
+├── hooks/            # Custom React hooks
+├── constants/        # Theme, spacing, design tokens
+└── global.css        # Global styles (CSS-in-JS via Expo)
 ```
 
-Run lint and typecheck before declaring any task done.
+Non-route code (components, hooks, utils) lives outside `src/app/`.
 
-## Navigation & Routing
+## Non-Negotiable Project Invariants
 
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
+- Use **Expo Router** for all navigation; routes live in `src/app/`
+- **Do not manually create/edit `ios/` or `android/`** — Continuous Native Generation handles this; configure native behavior in `app.json` and config plugins
+- **Do not expose server secrets** — client only holds public/anonymized keys
+- **Do not modify the parent web app** (`../north-form`) when working on mobile
+- Use `npx expo install <package>` for dependencies — resolves SDK-compatible versions
+- Preserve cross-platform compatibility (Android, iOS, web)
+- Run lint and typecheck before declaring any task done
 
-## Building with EAS
+## Conventions
 
-Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
-Docs: https://docs.expo.dev/eas/index.md
+- Inspect existing patterns before introducing dependencies
+- Prefer simple, maintainable solutions over unnecessary abstraction
+- Avoid adding libraries when the existing stack can reasonably solve the problem
+- Agents must verify their changes (lint, typecheck, device test where applicable)
 
-## Rules
+## Verification Commands
 
-- If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
-- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
-- Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+```bash
+npx expo lint           # lint
+npx tsc --noEmit        # typecheck
+npx expo-doctor         # diagnose dependency/config issues
+npx expo start          # start dev server (test on device via Expo Go)
+npx expo run:android    # development build on Android (after native deps added)
+npx expo run:ios        # development build on iOS
+```
+
+Use `bunx` instead of `npx` if `bun.lock` is present (project uses pnpm).
