@@ -8,14 +8,15 @@ Expo/React Native mobile app consuming the NORTH & FORM web/API backend. Indepen
 |---|---|---|
 | `docs/README.md` | Documentation index and routing | Starting any task; need to find relevant docs |
 | `PROJECT_STATUS.md` | Current implementation state and handoff | Starting any task or switching agents |
-| `docs/phase-3-1.md` | Phase 3.1: Expo foundation, authentication, native API access | Working on Phase 3.1 auth/API foundation |
+| `docs/phase-3-1.md` | Authentication architecture and verification: Supabase client, PKCE OAuth, callback route, device verification, debugging history | Working on auth or API integration |
 
 ## Current High-Level Status
 
 - Expo 57 scaffold complete
 - Expo Router configured with `src/app` as route root
-- Expo Go successfully tested on physical Android device
-- Authentication/mobile API implementation **not started**
+- Native Google OAuth complete, verified on a physical Android device
+- Session persistence via AsyncStorage verified
+- API client / catalogue / cart: **not started**
 
 ## Stack / Version Traps
 
@@ -29,12 +30,14 @@ Expo/React Native mobile app consuming the NORTH & FORM web/API backend. Indepen
 ```
 src/
 ├── app/              # Expo Router routes (file-based routing)
-│   ├── _layout.tsx   # Root tab navigator
-│   ├── index.tsx     # Home screen
-│   └── explore.tsx   # Example second tab
+│   ├── _layout.tsx   # Root layout; AuthProvider + session redirects
+│   ├── (tabs)/       # Authenticated screens
+│   └── auth/         # Sign-in + OAuth callback routes
 ├── components/       # Reusable UI components
 │   ├── ui/           # Primitives (Collapsible, etc.)
 │   ├── *.tsx         # Feature components
+├── context/          # AuthProvider / useAuth
+├── lib/              # Supabase client
 ├── hooks/            # Custom React hooks
 ├── constants/        # Theme, spacing, design tokens
 └── global.css        # Global styles (CSS-in-JS via Expo)

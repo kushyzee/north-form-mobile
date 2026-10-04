@@ -6,12 +6,15 @@ This directory contains phase-specific and operational documentation. `AGENTS.md
 
 | Document | Covers | Read it when |
 |---|---|---|
-| `phase-3-1.md` | Phase 3.1: Expo foundation, Supabase mobile client, persistent auth session, Google OAuth/deep linking, mobile API client, authenticated `GET /api/cart` verification | Working on Phase 3.1 authentication/API foundation |
+| `phase-3-1.md` | **Phase 3.1 (complete):** native Google authentication — Supabase client, PKCE OAuth, AsyncStorage persistence, callback route, device verification, debugging history | Working on auth, or when you need to know why `flowType: 'pkce'` and the callback route exist |
 | `PROJECT_STATUS.md` (project root) | Current implementation state, verified facts, handoff guidance for new agents | Starting any task or switching agents |
 
 ## Phase Documents
 
-Only Phase 3.1 exists currently. Future phases will be added as implementation progresses.
+| Phase | Status | Scope |
+|---|---|---|
+| Phase 3.1 | ✅ Complete and device-verified | Native Google authentication |
+| Next | ⬜ Not started | Authenticated API integration, catalogue and cart |
 
 ## How to Use
 
