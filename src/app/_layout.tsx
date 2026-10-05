@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { AuthProvider, useAuth } from '@/context/auth';
+import { CartProvider } from '@/context/cart';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -37,10 +38,12 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   return (
     <AuthProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <AnimatedSplashOverlay />
-        <RootLayoutNav />
-      </ThemeProvider>
+      <CartProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <AnimatedSplashOverlay />
+          <RootLayoutNav />
+        </ThemeProvider>
+      </CartProvider>
     </AuthProvider>
   );
 }

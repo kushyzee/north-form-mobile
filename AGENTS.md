@@ -8,7 +8,8 @@ Expo/React Native mobile app consuming the NORTH & FORM web/API backend. Indepen
 |---|---|---|
 | `docs/README.md` | Documentation index and routing | Starting any task; need to find relevant docs |
 | `PROJECT_STATUS.md` | Current implementation state and handoff | Starting any task or switching agents |
-| `docs/phase-3-1.md` | Authentication architecture and verification: Supabase client, PKCE OAuth, callback route, device verification, debugging history | Working on auth or API integration |
+| `docs/phase-3-1.md` | Authentication architecture and verification: Supabase client, PKCE OAuth, callback route, device verification, debugging history | Working on auth |
+| `docs/phase-3-2a.md` | API client and cart foundation: bearer injection, cart endpoint semantics, error normalization, `CartProvider` | Working on the API client or cart state |
 
 ## Current High-Level Status
 
@@ -16,7 +17,8 @@ Expo/React Native mobile app consuming the NORTH & FORM web/API backend. Indepen
 - Expo Router configured with `src/app` as route root
 - Native Google OAuth complete, verified on a physical Android device
 - Session persistence via AsyncStorage verified
-- API client / catalogue / cart: **not started**
+- API client + cart state foundation implemented; authenticated round trip still pending
+- Catalogue / product / cart UI: **not started**
 
 ## Stack / Version Traps
 
@@ -44,6 +46,9 @@ src/
 ```
 
 Non-route code (components, hooks, utils) lives outside `src/app/`.
+
+Environment variables use the `EXPO_PUBLIC_` prefix and live in `.env.local`
+(gitignored). `.env.example` documents them.
 
 ## Non-Negotiable Project Invariants
 
