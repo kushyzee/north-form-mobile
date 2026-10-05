@@ -78,7 +78,7 @@ Responsibilities:
   state. A failed read resolves to a signed-out state rather than leaving the app
   stuck loading.
 - **`signInWithGoogle()`.** Uses the **fixed literal** `redirectTo` of
-  `northform://auth/callback`, calls
+  `northform://auth/callback` (named constant `AUTH_REDIRECT_URL`), calls
   `signInWithOAuth({ provider: 'google', options: { redirectTo, skipBrowserRedirect: true } })`,
   opens the system browser with `WebBrowser.openAuthSessionAsync()`, extracts the
   `code` query parameter, and performs the single
@@ -338,9 +338,9 @@ route itself, which would introduce a second exchange site.
   `AppState` transition. `onNewIntent` precedes `onResume`, so the redirect wins,
   and the verified device test confirms this. The `dismiss` path is handled
   defensively regardless.
-- `APP_SCHEME` and `AUTH_CALLBACK_PATH` in `auth.tsx` are now unused after the
-  `redirectTo` literal replaced `createURL()`; `npx expo lint` reports both as
-  unused-var warnings. Safe to remove.
+- The unused `APP_SCHEME` / `AUTH_CALLBACK_PATH` constants left behind by the
+  `createURL()` removal have since been deleted. `AUTH_REDIRECT_URL` is now a
+  single named constant carrying the rationale.
 
 ---
 

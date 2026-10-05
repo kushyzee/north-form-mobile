@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "north-form-mobile",
-    "slug": "north-form-mobile",
+    "name": "North & Form",
+    "slug": "north-form",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

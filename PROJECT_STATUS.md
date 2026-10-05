@@ -54,8 +54,9 @@ Cart UI is next.
   `docs/phase-3-1.md`. Does not appear in release builds.
 - If the OS kills the app while the browser is open, the callback route returns the
   user to sign-in instead of completing authentication (intentional).
-- `APP_SCHEME` / `AUTH_CALLBACK_PATH` in `auth.tsx` are unused since `redirectTo`
-  became a literal; lint warns. Safe to remove.
+- The `APP_SCHEME` / `AUTH_CALLBACK_PATH` constants left unused by the
+  `createURL()` removal have been deleted; the redirect is a single named
+  constant, `AUTH_REDIRECT_URL`.
 
 ## Next (Not Yet Implemented)
 
