@@ -7,7 +7,8 @@ This directory contains phase-specific and operational documentation. `AGENTS.md
 | Document | Covers | Read it when |
 |---|---|---|
 | `phase-3-1.md` | **Phase 3.1 (complete):** native Google authentication — Supabase client, PKCE OAuth, AsyncStorage persistence, callback route, device verification, debugging history | Working on auth, or when you need to know why `flowType: 'pkce'` and the callback route exist |
-| `phase-3-2a.md` | **Phase 3.2A (current):** mobile API client and cart foundation — bearer injection, cart API semantics, error normalization, Zod validation, `CartProvider`, verified round trip, observation technique | Working on the API client, cart state, or cart endpoints |
+| `phase-3-2a.md` | **Phase 3.2A:** mobile API client and cart foundation — bearer injection, cart API semantics, error normalization, Zod validation, `CartProvider`, verified round trip, observation technique | Working on the API client, cart state, or cart endpoints |
+| `phase-3-3b.md` | **Phase 3.3B (current):** catalogue data layer — the four public catalogue endpoints, `Category`/`Product` schemas, query-parameter encoding, public-vs-authenticated access on one shared client | Working on the catalogue, product data, or the API client's request/validation rules |
 | `PROJECT_STATUS.md` (project root) | Current implementation state, verified facts, handoff guidance for new agents | Starting any task or switching agents |
 
 ## Phase Documents
@@ -16,7 +17,8 @@ This directory contains phase-specific and operational documentation. `AGENTS.md
 |---|---|---|
 | Phase 3.1 | ✅ Complete and device-verified | Native Google authentication |
 | Phase 3.2A | ✅ Transport + cart state verified end to end | API client + cart state foundation |
-| Next | ⬜ Not started | Cart UI, catalogue, product detail |
+| Phase 3.3B | ✅ Data layer unit-tested; not device-verified | Catalogue data layer (no UI) |
+| Next | ⬜ Not started | Catalogue UI, product detail, cart UI |
 
 ## How to Use
 

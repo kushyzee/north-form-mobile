@@ -10,6 +10,7 @@ Expo/React Native mobile app consuming the NORTH & FORM web/API backend. Indepen
 | `PROJECT_STATUS.md` | Current implementation state and handoff | Starting any task or switching agents |
 | `docs/phase-3-1.md` | Authentication architecture and verification: Supabase client, PKCE OAuth, callback route, device verification, debugging history | Working on auth |
 | `docs/phase-3-2a.md` | API client and cart foundation: bearer injection, cart endpoint semantics, error normalization, `CartProvider` | Working on the API client or cart state |
+| `docs/phase-3-3b.md` | Catalogue data layer: the four public catalogue endpoints, `Category`/`Product` schemas, query encoding, public-vs-authenticated access | Working on the catalogue or product data |
 
 ## Current High-Level Status
 
@@ -18,7 +19,8 @@ Expo/React Native mobile app consuming the NORTH & FORM web/API backend. Indepen
 - Native Google OAuth complete, verified on a physical Android device
 - Session persistence via AsyncStorage verified
 - API client + cart state foundation implemented; authenticated `GET /api/cart` verified (200)
-- Catalogue / product / cart UI: **not started**
+- Catalogue data layer implemented (4 endpoints, Zod-validated); unit-tested, **not** live-verified
+- Catalogue / product / cart **UI**: not started
 
 ## Stack / Version Traps
 
@@ -72,6 +74,7 @@ Environment variables use the `EXPO_PUBLIC_` prefix and live in `.env.local`
 ```bash
 npx expo lint           # lint
 npx tsc --noEmit        # typecheck
+pnpm test               # vitest run
 npx expo-doctor         # diagnose dependency/config issues
 npx expo start          # start dev server (test on device via Expo Go)
 npx expo run:android    # development build on Android (after native deps added)

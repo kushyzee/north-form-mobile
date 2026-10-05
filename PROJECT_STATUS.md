@@ -4,10 +4,10 @@
 
 ## Current Phase
 
-**Phase 3.2A — API client + cart foundation.** Authentication (Phase 3.1) is
-complete and device-verified. The API client and cart state layers are
-implemented, and the authenticated round trip has been verified end to end.
-Cart UI is next.
+**Phase 3.3B — catalogue data layer.** Authentication (Phase 3.1) and the API
+client + cart foundation (Phase 3.2A) are complete. The mobile API client now
+reads the four public catalogue endpoints with Zod-validated responses. The
+catalogue **data layer** is done; catalogue **UI** has not been started.
 
 ## Completed
 
@@ -36,8 +36,34 @@ Cart UI is next.
 - [x] **Authenticated round trip verified**: real device session token → Bearer →
       local `GET /api/cart` → **200** with a valid `Cart`
 
+**Phase 3.3B — catalogue data layer**
+
+- [x] `Category` / `Product` / `ProductSort` Zod schemas (`src/lib/catalogue-schema.ts`),
+      mirroring the server's `lib/catalogue/types.ts`
+- [x] Four catalogue methods on the existing client: `getCategories()`,
+      `getProducts({ category?, search?, sort? })`, `getProductBySlug(slug)`,
+      `getFeaturedProducts(limit?)`
+- [x] Single shared `request()` in `src/lib/api.ts`; `requireAuth` is the only
+      difference between the cart and catalogue families — no second HTTP client
+- [x] Public access: catalogue calls need no session, and the bearer token is
+      still attached when one exists
+- [x] `URLSearchParams` encoding for query values; `encodeURIComponent` for the
+      slug path segment; absent options omitted rather than sent as placeholders
+- [x] Guards for an empty slug (which would otherwise address the *product list*
+      route) and an out-of-range `limit`
+- [x] Malformed responses become `InvalidResponseError`; never an empty array
+- [x] Per-family fallback codes (`CART_FAILED` / `CATALOGUE_FAILED`); server
+      error codes, statuses and customer-safe messages preserved
+- [x] Vitest suite: **85 assertions passing**, including cart regression tests
+      over the shared request path
+- [x] No UI, no provider, no state added
+
 ## Known Limitations
 
+- **The catalogue data layer has not been verified against a live server.**
+  Phase 3.3B is unit-tested against a stubbed `fetch` only. No request has been
+  made to a running `next dev`, and nothing has run on a device. The schemas
+  were written from the server's source, not from a captured response.
 - **The production origin does not yet serve the cart API.**
   `https://northform-livid.vercel.app/api/cart` returns `404` (HTML); its
   deployment predates the cart API commits. Redeploy the web app, or test against
@@ -60,12 +86,18 @@ Cart UI is next.
 
 ## Next (Not Yet Implemented)
 
+- Catalogue UI: product listing with category filter, search and sort
+- Product detail with size selection and add-to-cart
 - Cart UI (line list, quantity stepper, remove, clear, subtotal)
-- Catalogue and product detail
 - Checkout and orders
 
-See `docs/phase-3-1.md` for authentication and `docs/phase-3-2a.md` for the API
-client and cart foundation.
+Note for whoever starts the catalogue UI: `useApi()` returns `null` when signed
+out, but the catalogue endpoints are public, so a catalogue screen must not gate
+on it. See `docs/phase-3-3b.md` for the remaining open questions.
+
+See `docs/phase-3-1.md` for authentication, `docs/phase-3-2a.md` for the API
+client and cart foundation, and `docs/phase-3-3b.md` for the catalogue data
+layer.
 
 ## Backend Relationship
 
@@ -104,6 +136,10 @@ Do not duplicate the backend architecture here.
 | API client request shapes and error handling | ✅ 26 assertions against a stub |
 | **Authenticated `GET /api/cart` with a real token** | ✅ **200 + valid Cart** (device session → local `next dev`) |
 | Response validated by app's own Zod schema | ✅ Passes |
+| Catalogue client request shapes, encoding and validation | ✅ 85 assertions against a stub |
+| Cart behaviour after the request path was shared | ✅ Regression-tested in the same suite |
+| **Catalogue endpoints against a live server** | ⏳ **Not done** — stub only, no live request |
+| Catalogue methods running in the app | ⏳ **Not done** — no UI consumes them yet |
 | In-app automatic `getCart()` observed on device | ⏳ Blocked by device DNS |
 | No secrets exposed | ✅ Only public anon key in client |
 | Parent web project unaffected | ✅ Separate directory |
@@ -115,6 +151,7 @@ Do not duplicate the backend architecture here.
 3. Read `docs/README.md` — documentation index
 4. Read `docs/phase-3-1.md` — authentication architecture, verification, debugging history
 5. Read `docs/phase-3-2a.md` — API client and cart foundation
-6. Inspect the actual implementation before making changes
+6. Read `docs/phase-3-3b.md` — catalogue data layer
+7. Inspect the actual implementation before making changes
 
 Verify everything from the codebase rather than assuming.
