@@ -77,12 +77,15 @@ Responsibilities:
   initial read prevents a slow `getSession()` from overwriting newer event-driven
   state. A failed read resolves to a signed-out state rather than leaving the app
   stuck loading.
-- **`signInWithGoogle()`.** Builds `redirectTo` with
-  `Linking.createURL('auth/callback', { scheme: 'northform' })`, calls
+- **`signInWithGoogle()`.** Uses the **fixed literal** `redirectTo` of
+  `northform://auth/callback`, calls
   `signInWithOAuth({ provider: 'google', options: { redirectTo, skipBrowserRedirect: true } })`,
   opens the system browser with `WebBrowser.openAuthSessionAsync()`, extracts the
   `code` query parameter, and performs the single
   `exchangeCodeForSession(code)` call.
+
+  The literal is deliberate — do **not** "restore" `Linking.createURL()`. See
+  [item 9 of the debugging history](#debugging-history).
 - **Error handling.** Each failure stage maps to a distinct, safe, user-facing
   message. Nothing from the exchange is logged — no codes, tokens, callback URLs,
   OAuth URLs, or error messages.
@@ -149,7 +152,8 @@ envelope parsing, authenticated `GET /api/cart`) is **not** part of this phase.
 ## Debugging History
 
 This section is retained deliberately. It explains why `flowType: 'pkce'` is set
-explicitly and why the callback route exists — both look redundant otherwise.
+explicitly, why the callback route exists, and why `redirectTo` is a hardcoded
+literal — all three look redundant otherwise.
 
 1. **Unmatched route on first physical login.** Google sign-in completed and
    Android returned to `northform://auth/callback`, but Expo Router displayed
@@ -189,6 +193,44 @@ explicitly and why the callback route exists — both look redundant otherwise.
 
 8. **Persistence confirmed.** Relaunching the app preserved the authenticated
    session; sign-out and sign-in also behaved correctly.
+
+9. **`Linking.createURL()` regression — the redirect silently became
+   environment-dependent.** After the app had been working, a later device test
+   found the browser redirecting to the Supabase **Site URL**
+   (`https://northform-livid.vercel.app`) instead of `northform://auth/callback`.
+
+   The cause was `Linking.createURL('auth/callback', { scheme: 'northform' })`.
+   That helper interpolates `Constants.expoConfig.hostUri`, so its output depends
+   on how the app was launched. Running the installed `expo-linking@57.0.11`
+   against a stubbed `expo-constants` confirmed it:
+
+   | Runtime state | `createURL(...)` result |
+   |---|---|
+   | Dev build + Metro attached | `northform://192.168.1.5:8081auth/callback` |
+   | Release build / no `hostUri` | `northform://auth/callback` |
+
+   Note the missing `/` before `auth` in the first row — `createURL.js` composes
+   `${scheme}://${hostUri}${path}`. `Linking.parse()` on that string yields
+   `scheme: null` and no query params, so the code was unreachable even if the
+   callback had arrived.
+
+   GoTrue **silently discards** a `redirect_to` that is not allow-listed and falls
+   back to the Site URL — which is exactly the reported symptom, with no error
+   from Supabase. Verified against the live project: an allow-listed
+   `northform://auth/callback` is passed through to Google intact, a
+   non-allow-listed one is dropped and the callback issues
+   `303 → https://northform-livid.vercel.app`.
+
+   **Fix:** hardcode the literal `northform://auth/callback`. It is now
+   environment-independent, and it matches both the Supabase allow-list and the
+   Android intent filter. Supabase's own React Native guide suggests
+   `createURL()`, which is precisely what makes this trap easy to fall into.
+
+10. **Rebuild required after `app.json` changes.** The `<data android:scheme="northform"/>`
+    intent filter lives in the *generated* `android/` project, not in JS. Editing
+    `app.json` (including the later name/slug/icon changes) has no effect on an
+    already-installed APK — `npx expo run:android` is required. Development builds
+    are mandatory here; Expo Go cannot receive a custom scheme at all.
 
 All temporary stage/boolean diagnostic logging was removed after the root cause was
 confirmed and verified.
@@ -241,6 +283,43 @@ present, the code challenge method falls back to `plain`. This was left unchange
 on purpose; resolving it properly means providing a WebCrypto implementation for
 React Native, which is out of scope for this phase.
 
+### "State update on a component that hasn't mounted yet" warning
+
+On a cold-start `northform://` callback, React Native reports:
+
+```
+Can't perform a React state update on a component that hasn't mounted yet...
+expo-router/build/fork/useLinking.native.js:127
+```
+
+**This originates entirely inside Expo Router and is not caused by application
+code.** Traced through the installed `expo-router@57.0.24`:
+
+- `getLinkingConfig.js:60-88` returns `getInitialURL()`, and expo-linking's
+  implementation is `async`, so it is always a Promise.
+- That forces `useLinking.native.js:120-130` into the `typeof url !== 'string'`
+  branch, whose `.then()` callback calls `onUnhandledLinking` at line 127.
+- `onUnhandledLinking` **is** `setLastUnhandledLink`, passed in from
+  `react-navigation/native/NavigationContainer.js:64-69`.
+- `getInitialState` is consumed by `useThenable`, whose `fork/useThenable.js:42`
+  does `React.useState(create)` — a lazy initializer, so it runs *during render*.
+  The `.then()` fires after that render commits, updating a `NavigationContainer`
+  that is still mounting.
+
+All navigation in this app happens inside `useEffect` and behind guards; there is
+no side effect in any render function. Only a cold-start deep link reaches the
+path above — ordinary startup returns `null` from `getInitialURL()` and skips it
+entirely.
+
+**Development-only and harmless.** `lastUnhandledLink` is bookkeeping for
+Expo Router's devtools; React emits this warning only under `__DEV__`, so it does
+not appear in a release build. Authentication completes normally.
+
+No fix applied — the correct fix is in Expo Router's internals, and nothing in
+this app triggers it beyond the callback itself. A related (independent) tidy-up:
+on the callback route both `callback.tsx` and `_layout.tsx` call
+`router.replace()` for the same state change. Harmless and idempotent.
+
 ### Cold-start callback
 
 If the OS completely kills the app while the external browser is open, the callback
@@ -253,11 +332,15 @@ route itself, which would introduce a second exchange site.
 ### Other notes
 
 - Expo Go is not sufficient for this flow; the custom scheme requires a
-  development build.
+  development build. `npx expo run:android` is required after any `app.json`
+  change, since the intent filter lives in the generated `android/` project.
 - On Android the `openAuthSessionAsync` polyfill races the redirect against an
   `AppState` transition. `onNewIntent` precedes `onResume`, so the redirect wins,
   and the verified device test confirms this. The `dismiss` path is handled
   defensively regardless.
+- `APP_SCHEME` and `AUTH_CALLBACK_PATH` in `auth.tsx` are now unused after the
+  `redirectTo` literal replaced `createURL()`; `npx expo lint` reports both as
+  unused-var warnings. Safe to remove.
 
 ---
 

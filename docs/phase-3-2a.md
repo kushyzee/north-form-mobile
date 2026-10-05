@@ -1,7 +1,7 @@
 # Phase 3.2A — API Client & Cart Foundation
 
-**Status:** Implemented and statically verified; live authenticated round trip still pending
-**Last updated:** 2025-10-04
+**Status:** Implemented; authenticated round trip verified end to end
+**Last updated:** 2025-10-05
 
 ---
 
@@ -208,26 +208,75 @@ assertions, all passing):
 
 ---
 
-## Not yet verified
+### Authenticated round trip — VERIFIED
 
-**The full authenticated round trip against the real API has not been run.** Every
-attempt to obtain a usable access token non-interactively hit Supabase's
-`over_email_send_rate_limit` (HTTP 429) on the shared project, and test accounts
-require email confirmation. So this specific chain is **unproven**:
+The previously-unproven chain is now established:
 
 ```
-real Supabase access token → Authorization: Bearer → GET /api/cart → real Cart
+real device Supabase access token
+  → Authorization: Bearer <token>
+  → local Next.js GET /api/cart
+  → 200 with a valid Cart
 ```
 
-What *is* proven is the two halves separately: the server's 401 behaviour for
-every bad-credential shape (above), and the client's parsing of a correct response
-(stub). Closing the gap needs a signed-in device session.
+Supabase signups remained unusable (`over_email_send_rate_limit`, 429, plus email
+confirmation), so the credential used was the **real session already persisted on
+the attached device**. It was read via `adb shell run-as
+com.anonymous.northformmobile cat .../databases/RKStorage` and sent to the local
+`next dev` server.
 
-**The configured production origin does not currently serve the cart API.**
-`https://northform-livid.vercel.app/api/cart` returns `404` with an HTML body,
-while `/api/orders` returns a proper `401` JSON envelope. The deployment predates
-commit `27783f3` (the cart API). Redeploy the web app before pointing the device
-at production, or use the LAN address for local testing.
+Result: **HTTP 200** with a populated cart — one line, `Plain T-Shirt`, size
+`XXL`, quantity 1, `unitPrice: 22000`, `subtotal: 22000`, `maxQuantity: 40`.
+
+The token was independently confirmed live and authentic: `iss`
+`…supabase.co/auth/v1`, `aud`/`role` `authenticated`, unexpired, and `sub`
+matching the persisted session's user id.
+
+Negative controls, so the 200 is not passing by accident:
+
+| Credential | Result |
+|---|---|
+| No `Authorization` header | `401 UNAUTHENTICATED` |
+| Tampered JWT signature | `401` |
+| `Bearer undefined` | `401` |
+
+The response body was then run through this project's **own** `cartSchema.safeParse`
+(copied verbatim from `src/lib/cart-schema.ts`): **PASS**, with a negative control
+correctly rejecting a malformed line. So the payload satisfies the exact validation
+`CartProvider` applies.
+
+### Observation technique (no permanent debug code)
+
+The request was observed with a throwaway logging reverse proxy rather than any
+change to `src/`:
+
+```
+device app → proxy :4000 (logs, forwards verbatim) → next dev :3000
+EXPO_PUBLIC_API_URL=http://<lan-ip>:4000/api
+```
+
+The proxy logs method, path, status, timing, request/response bodies, and a
+**redacted** `Authorization`: presence, scheme, a sha256 fingerprint, and
+non-sensitive claims (`iss`, `aud`, `role`, truncated `sub`, `exp`). No token value
+is ever printed. This is reusable for the cart mutations in the next phase, which
+it forwards verbatim.
+
+### Not yet observed
+
+The app's **own** automatic `getCart()` (from `CartProvider`'s mount effect) did
+not fire during the test. Cause: the device had no working DNS
+(`UnknownHostException` in logcat), so `AuthProvider`'s `getSession()` never
+resolves, the app stays on the splash screen, and no effect runs. Metro (`:8081`)
+and the proxy (`:4000`) were both reachable over raw IP — only name resolution
+was broken. Restore DNS/Wi-Fi and relaunch to observe the in-app request; no
+further instrumentation is needed.
+
+### Production origin
+
+`https://northform-livid.vercel.app/api/cart` still returns `404` with an HTML
+body, while `/api/orders` returns a proper `401` JSON envelope. That deployment
+predates commit `27783f3` (the cart API). Redeploy the web app before pointing a
+device at production; for local testing use the LAN address.
 
 ---
 

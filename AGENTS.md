@@ -17,7 +17,7 @@ Expo/React Native mobile app consuming the NORTH & FORM web/API backend. Indepen
 - Expo Router configured with `src/app` as route root
 - Native Google OAuth complete, verified on a physical Android device
 - Session persistence via AsyncStorage verified
-- API client + cart state foundation implemented; authenticated round trip still pending
+- API client + cart state foundation implemented; authenticated `GET /api/cart` verified (200)
 - Catalogue / product / cart UI: **not started**
 
 ## Stack / Version Traps
