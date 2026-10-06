@@ -4,6 +4,7 @@ import { useColorScheme } from 'react-native';
 import { useEffect } from 'react';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import { ToastProvider } from '@/components/toast';
 import { AuthProvider, useAuth } from '@/context/auth';
 import { CartProvider } from '@/context/cart';
 
@@ -44,7 +45,12 @@ export default function RootLayout() {
       <CartProvider>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <AnimatedSplashOverlay />
-          <RootLayoutNav />
+          {/* Outside the navigator so a toast raised from any screen — tab or
+              pushed detail — overlays everything. Must be inside
+              ThemeProvider, since it reads the theme for its own colours. */}
+          <ToastProvider>
+            <RootLayoutNav />
+          </ToastProvider>
         </ThemeProvider>
       </CartProvider>
     </AuthProvider>

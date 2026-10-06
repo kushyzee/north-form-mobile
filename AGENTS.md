@@ -12,6 +12,7 @@ Expo/React Native mobile app consuming the NORTH & FORM web/API backend. Indepen
 | `docs/phase-3-2a.md` | API client and cart foundation: bearer injection, cart endpoint semantics, error normalization, `CartProvider` | Working on the API client or cart state |
 | `docs/phase-3-3b.md` | Catalogue data layer: the four public catalogue endpoints, `Category`/`Product` schemas, query encoding, public-vs-authenticated access | Working on the catalogue or product data |
 | `docs/phase-3-3c-1.md` | Catalogue UI: the Shop tab, product grid, category/search/sort controls, loading-empty-error states, `/product/[slug]` contract | Working on the catalogue screens or navigation |
+| `docs/phase-3-3c-2.md` | Product detail: gallery, size/quantity selection, add-to-cart, the **additive** cart semantics and why the quantity ceiling is not the stock figure | Working on the product-detail screen or add-to-cart |
 
 ## Current High-Level Status
 
@@ -20,9 +21,10 @@ Expo/React Native mobile app consuming the NORTH & FORM web/API backend. Indepen
 - Native Google OAuth complete, verified on a physical Android device
 - Session persistence via AsyncStorage verified
 - API client + cart state foundation implemented; authenticated `GET /api/cart` verified (200)
-- Catalogue data layer implemented (4 endpoints, Zod-validated); unit-tested, **not** live-verified
-- Catalogue listing UI implemented (Shop tab: grid, filters, search, sort); **not** device-verified
-- Product detail, cart UI, checkout: not started
+- Catalogue data layer implemented (4 endpoints, Zod-validated); **schemas now confirmed against a live server**
+- Catalogue listing UI implemented (Shop tab: grid, filters, search, sort)
+- Product detail + add to cart implemented, **verified on a physical Android device** (live API, signed in, additive increment confirmed)
+- Cart UI, checkout: not started
 
 ## Stack / Version Traps
 
@@ -70,6 +72,24 @@ Environment variables use the `EXPO_PUBLIC_` prefix and live in `.env.local`
 - Prefer simple, maintainable solutions over unnecessary abstraction
 - Avoid adding libraries when the existing stack can reasonably solve the problem
 - Agents must verify their changes (lint, typecheck, device test where applicable)
+
+## Cart Semantics
+
+`POST /api/cart/items` **increments** an existing `(productId, size)` line rather
+than setting it, and the server validates the **resulting** total against total
+product stock (there is no per-size stock). Use `addItem()` for "add these" and
+`setQuantity()` only when the intent is to set an absolute quantity. Never
+fabricate a cart or increment a local count — `CartProvider` adopts the server's
+response. See `docs/phase-3-3c-2.md`.
+
+## Transient Feedback
+
+Use `useToast()` from `src/components/toast.tsx` for transient confirmations —
+not `Alert`, which is modal and blocks until dismissed. The provider is mounted
+once in `src/app/_layout.tsx`, outside the navigator, so it overlays tabs and
+pushed screens alike. It uses `react-native-reanimated`; **do not add a toast
+library**. Errors that belong to a specific control are better rendered inline
+next to that control, as the add-to-cart panel does.
 
 ## Verification Commands
 
