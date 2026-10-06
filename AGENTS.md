@@ -11,6 +11,7 @@ Expo/React Native mobile app consuming the NORTH & FORM web/API backend. Indepen
 | `docs/phase-3-1.md` | Authentication architecture and verification: Supabase client, PKCE OAuth, callback route, device verification, debugging history | Working on auth |
 | `docs/phase-3-2a.md` | API client and cart foundation: bearer injection, cart endpoint semantics, error normalization, `CartProvider` | Working on the API client or cart state |
 | `docs/phase-3-3b.md` | Catalogue data layer: the four public catalogue endpoints, `Category`/`Product` schemas, query encoding, public-vs-authenticated access | Working on the catalogue or product data |
+| `docs/phase-3-3c-1.md` | Catalogue UI: the Shop tab, product grid, category/search/sort controls, loading-empty-error states, `/product/[slug]` contract | Working on the catalogue screens or navigation |
 
 ## Current High-Level Status
 
@@ -20,7 +21,8 @@ Expo/React Native mobile app consuming the NORTH & FORM web/API backend. Indepen
 - Session persistence via AsyncStorage verified
 - API client + cart state foundation implemented; authenticated `GET /api/cart` verified (200)
 - Catalogue data layer implemented (4 endpoints, Zod-validated); unit-tested, **not** live-verified
-- Catalogue / product / cart **UI**: not started
+- Catalogue listing UI implemented (Shop tab: grid, filters, search, sort); **not** device-verified
+- Product detail, cart UI, checkout: not started
 
 ## Stack / Version Traps
 

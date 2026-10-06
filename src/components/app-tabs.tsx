@@ -20,11 +20,13 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="explore">
-        <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
+      {/* Native SF Symbol / Material glyph rather than a PNG: it is tinted to
+          follow the theme automatically, and it stays sharp at every size. */}
+      <NativeTabs.Trigger name="shop">
+        <NativeTabs.Trigger.Label>Shop</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
+          sf={{ default: 'bag', selected: 'bag.fill' }}
+          md={{ default: 'shopping_bag', selected: 'shopping_bag' }}
         />
       </NativeTabs.Trigger>
     </NativeTabs>

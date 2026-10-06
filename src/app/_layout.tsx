@@ -30,6 +30,9 @@ function RootLayoutNav() {
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="auth" options={{ headerShown: false }} />
+      {/* Product detail sits outside the tabs group, so it is a pushed screen
+          with its own header and back button rather than a tab destination. */}
+      <Stack.Screen name="product/[slug]" options={{ title: 'Product' }} />
     </Stack>
   );
 }

@@ -97,3 +97,25 @@ export const KNOWN_CATALOGUE_ERROR_CODES = [
 ] as const;
 
 export type KnownCatalogueErrorCode = (typeof KNOWN_CATALOGUE_ERROR_CODES)[number];
+
+/**
+ * Product stock state, derived from `stock_quantity`.
+ *
+ * Mirrors `getAvailability()` in the web app's `lib/catalogue/types.ts`, including
+ * the same threshold, so a product reads as "low stock" in the app at the same
+ * count it does on the web.
+ *
+ * This is **derived, not transmitted**: the API sends only `stockQuantity`, so
+ * nothing here validates a server response. It lives beside `Product` because it
+ * is derived from it.
+ */
+export type Availability = 'in_stock' | 'low_stock' | 'out_of_stock';
+
+/** At or below this many units we surface a "low stock" note (not urgency copy). */
+export const LOW_STOCK_THRESHOLD = 5;
+
+export function getAvailability(stockQuantity: number): Availability {
+  if (stockQuantity <= 0) return 'out_of_stock';
+  if (stockQuantity <= LOW_STOCK_THRESHOLD) return 'low_stock';
+  return 'in_stock';
+}
